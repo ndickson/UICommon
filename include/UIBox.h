@@ -176,6 +176,7 @@ protected:
 	static void onMouseUp(UIBox* box, size_t button, const MouseState& state);
 	static void onMouseScroll(UIBox* box, float scrollAmount, const MouseState& state);
 
+	static void updateMouseFocusIndex(UIContainer* container, const MouseState& state);
 private:
 	static UIContainerClass initClass() {
 		UIContainerClass c;
