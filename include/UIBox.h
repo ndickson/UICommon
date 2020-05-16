@@ -57,12 +57,12 @@ struct UIBoxClass {
 	//
 	// If this is null, consumesMouse determines whether all points of the box are
 	// considered inside (true), or no points of the box are considered inside (false).
-	bool (*isInside)(UIBox* box, const Vec2f& position) = nullptr;
+	bool (*isInside)(UIBox& box, const Vec2f& position) = nullptr;
 
 	// No other mouse functions will be called on a box until either onMouseEnter
 	// has been called, (unless onMouseEnter is null).  After onMouseExit is called,
 	// no other mouse functions will be called on a box until the next onMouseEnter.
-	void (*onMouseEnter)(UIBox* box, const MouseState& state) = nullptr;
+	void (*onMouseEnter)(UIBox& box, const MouseState& state) = nullptr;
 
 	// onMouseExit is called whenever a UIBox loses mouse focus.
 	//
@@ -72,31 +72,31 @@ struct UIBoxClass {
 	// focus from the operating system, in which case, all boxes below it must
 	// also lose mouse focus, so onMouseUp will be called for any mouse buttons
 	// that are down, and then onMouseExit will be called, too.
-	void (*onMouseExit)(UIBox* box, const MouseState& state) = nullptr;
+	void (*onMouseExit)(UIBox& box, const MouseState& state) = nullptr;
 
 	// In the case of a change in the mouse focus, onMouseMove is called on the
 	// previous UIBox and *not* the UIBox that gained mouse focus.
-	void (*onMouseMove)(UIBox* box, const Vec2f& change, const MouseState& state) = nullptr;
+	void (*onMouseMove)(UIBox& box, const Vec2f& change, const MouseState& state) = nullptr;
 
 	// If onMouseDown is called, onMouseUp will be called on the same UIBox, for
 	// the same mouse button, before onMouseExit is called on the UIBox.
-	void (*onMouseDown)(UIBox* box, size_t button, const MouseState& state) = nullptr;
-	void (*onMouseUp)(UIBox* box, size_t button, const MouseState& state) = nullptr;
-	void (*onMouseScroll)(UIBox* box, float scrollAmount, const MouseState& state) = nullptr;
+	void (*onMouseDown)(UIBox& box, size_t button, const MouseState& state) = nullptr;
+	void (*onMouseUp)(UIBox& box, size_t button, const MouseState& state) = nullptr;
+	void (*onMouseScroll)(UIBox& box, float scrollAmount, const MouseState& state) = nullptr;
 
 	// onKeyDown is called recursively down to the UIBox with keyboard focus,
 	// so that higher-level shortcut keys, like Ctrl+S for saving or Esc to close
 	// a dialog box.
-	void (*onKeyDown)(UIBox* box, size_t key, const KeyState& state) = nullptr;
-	void (*onKeyUp)(UIBox* box, size_t key, const KeyState& state) = nullptr;
+	void (*onKeyDown)(UIBox& box, size_t key, const KeyState& state) = nullptr;
+	void (*onKeyUp)(UIBox& box, size_t key, const KeyState& state) = nullptr;
 
-	void (*onResize)(UIBox* box, const Vec2f& prevOrigin, const Vec2f& prevSize) = nullptr;
+	void (*onResize)(UIBox& box, const Vec2f& prevOrigin, const Vec2f& prevSize) = nullptr;
 
 	// clipRectangle is in the space of this box, so unclipped would be from (0,0) to box->size.
 	// targetRectangle is the rectangle of target that clipRectangle fits into.
-	void (*draw)(const UIBox* box, const Box2f& clipRectangle, const Box2f& targetRectangle, Canvas& target) = nullptr;
+	void (*draw)(const UIBox& box, const Box2f& clipRectangle, const Box2f& targetRectangle, Canvas& target) = nullptr;
 
-	const char* (*getTitle)(const UIBox*) = nullptr;
+	const char* (*getTitle)(const UIBox&) = nullptr;
 };
 
 // This is the base class of all UI elements.
@@ -149,6 +149,8 @@ struct UIContainer : public UIBox {
 	size_t keyFocusIndex;
 	size_t mouseFocusIndex;
 
+	Vec4f backgroundColour;
+
 	constexpr static size_t INVALID_INDEX = ~size_t(0);
 
 	static inline const UIContainerClass* getClass() {
@@ -168,15 +170,18 @@ protected:
 		static_cast<UIContainer*>(box)->children.setCapacity(0);
 	}
 
-	static bool isInside(UIBox* box, const Vec2f& position);
-	static void onMouseEnter(UIBox* box, const MouseState& state);
-	static void onMouseExit(UIBox* box, const MouseState& state);
-	static void onMouseMove(UIBox* box, const Vec2f& change, const MouseState& state);
-	static void onMouseDown(UIBox* box, size_t button, const MouseState& state);
-	static void onMouseUp(UIBox* box, size_t button, const MouseState& state);
-	static void onMouseScroll(UIBox* box, float scrollAmount, const MouseState& state);
+	static bool isInside(UIBox& box, const Vec2f& position);
+	static void onMouseEnter(UIBox& box, const MouseState& state);
+	static void onMouseExit(UIBox& box, const MouseState& state);
+	static void onMouseMove(UIBox& box, const Vec2f& change, const MouseState& state);
+	static void onMouseDown(UIBox& box, size_t button, const MouseState& state);
+	static void onMouseUp(UIBox& box, size_t button, const MouseState& state);
+	static void onMouseScroll(UIBox& box, float scrollAmount, const MouseState& state);
 
-	static void updateMouseFocusIndex(UIContainer* container, const MouseState& state);
+	static void updateMouseFocusIndex(UIContainer& container, const MouseState& state);
+
+	static void draw(const UIBox& box, const Box2f& clipRectangle, const Box2f& targetRectangle, Canvas& target);
+
 private:
 	static UIContainerClass initClass() {
 		UIContainerClass c;
@@ -192,6 +197,8 @@ private:
 		c.onMouseDown = &onMouseDown;
 		c.onMouseUp = &onMouseUp;
 		c.onMouseScroll = &onMouseScroll;
+
+		c.draw = &draw;
 
 		return c;
 	}
