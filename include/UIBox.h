@@ -3,6 +3,8 @@
 // This file defines the base class for UI elements, UIBox,
 // as well as UIContainer.
 
+#include "UICommon.h"
+
 #include <Array.h>
 #include <ArrayDef.h>
 #include <Box.h>
@@ -12,9 +14,7 @@
 #include <memory>
 
 OUTER_NAMESPACE_BEGIN
-namespace UICommon {
-
-using namespace OUTER_NAMESPACE::Common;
+UICOMMON_LIBRARY_NAMESPACE_BEGIN
 
 class Canvas;
 struct UIBox;
@@ -113,30 +113,20 @@ struct UIBox {
 		}
 	}
 
-	static inline const UIBoxClass* getClass() {
-		static UIBoxClass boxClass(initClass());
-		return &boxClass;
-	}
+	UICOMMON_LIBRARY_EXPORTED static const UIBoxClass staticType;
 
 	inline const UIContainer* getRoot() const;
 
 protected:
-	UIBox(const UIBoxClass* c) : type(c), parent(nullptr), origin(0,0), size(0,0) {}
-	UIBox() : UIBox(getClass()) {}
-
-	static UIBox* construct() {
-		return new UIBox();
+	UIBox(const UIBoxClass* c) : type(c), parent(nullptr), origin(0,0), size(0,0) {
+		assert(c != nullptr);
+		assert(c->construct != construct);
 	}
+	UIBox() : UIBox(&staticType) {}
 
 private:
-	static UIBoxClass initClass() {
-		UIBoxClass c;
-		c.isContainer = false;
-		c.typeName = "UIBox";
-		c.construct = &construct;
-		// No data to destruct, so destruct doesn't need to be set.
-		return c;
-	}
+	UICOMMON_LIBRARY_EXPORTED static UIBox* construct();
+	static inline UIBoxClass initClass();
 };
 
 struct UIContainerClass : public UIBoxClass {
@@ -153,55 +143,31 @@ struct UIContainer : public UIBox {
 
 	constexpr static size_t INVALID_INDEX = ~size_t(0);
 
-	static inline const UIContainerClass* getClass() {
-		static UIContainerClass containerClass(initClass());
-		return &containerClass;
-	}
+	UICOMMON_LIBRARY_EXPORTED static const UIContainerClass staticType;
 
-	UIContainer() : UIBox(getClass()), keyFocusIndex(INVALID_INDEX), mouseFocusIndex(INVALID_INDEX) {}
+	UIContainer() : UIContainer(&staticType) {}
+	~UIContainer() = default;
 
 protected:
-	static UIBox* construct() {
-		return new UIContainer();
-	}
-	static void destruct(UIBox* box) {
-		assert(box->type != nullptr);
-		assert(box->type->isContainer);
-		static_cast<UIContainer*>(box)->children.setCapacity(0);
-	}
+	UIContainer(const UIContainerClass* c) : UIBox(c), keyFocusIndex(INVALID_INDEX), mouseFocusIndex(INVALID_INDEX), backgroundColour(0,0,0,0) {}
 
-	static bool isInside(UIBox& box, const Vec2f& position);
-	static void onMouseEnter(UIBox& box, const MouseState& state);
-	static void onMouseExit(UIBox& box, const MouseState& state);
-	static void onMouseMove(UIBox& box, const Vec2f& change, const MouseState& state);
-	static void onMouseDown(UIBox& box, size_t button, const MouseState& state);
-	static void onMouseUp(UIBox& box, size_t button, const MouseState& state);
-	static void onMouseScroll(UIBox& box, float scrollAmount, const MouseState& state);
+	UICOMMON_LIBRARY_EXPORTED static UIBox* construct();
+	UICOMMON_LIBRARY_EXPORTED static void destruct(UIBox* box);
 
-	static void updateMouseFocusIndex(UIContainer& container, const MouseState& state);
+	UICOMMON_LIBRARY_EXPORTED static bool isInside(UIBox& box, const Vec2f& position);
+	UICOMMON_LIBRARY_EXPORTED static void onMouseEnter(UIBox& box, const MouseState& state);
+	UICOMMON_LIBRARY_EXPORTED static void onMouseExit(UIBox& box, const MouseState& state);
+	UICOMMON_LIBRARY_EXPORTED static void onMouseMove(UIBox& box, const Vec2f& change, const MouseState& state);
+	UICOMMON_LIBRARY_EXPORTED static void onMouseDown(UIBox& box, size_t button, const MouseState& state);
+	UICOMMON_LIBRARY_EXPORTED static void onMouseUp(UIBox& box, size_t button, const MouseState& state);
+	UICOMMON_LIBRARY_EXPORTED static void onMouseScroll(UIBox& box, float scrollAmount, const MouseState& state);
 
-	static void draw(const UIBox& box, const Box2f& clipRectangle, const Box2f& targetRectangle, Canvas& target);
+	UICOMMON_LIBRARY_EXPORTED static void updateMouseFocusIndex(UIContainer& container, const MouseState& state);
+
+	UICOMMON_LIBRARY_EXPORTED static void draw(const UIBox& box, const Box2f& clipRectangle, const Box2f& targetRectangle, Canvas& target);
 
 private:
-	static UIContainerClass initClass() {
-		UIContainerClass c;
-		c.isContainer = true;
-		c.typeName = "UIContainer";
-		c.construct = &construct;
-		c.destruct = &destruct;
-
-		c.isInside = &isInside;
-		c.onMouseEnter = &onMouseEnter;
-		c.onMouseExit = &onMouseExit;
-		c.onMouseMove = &onMouseMove;
-		c.onMouseDown = &onMouseDown;
-		c.onMouseUp = &onMouseUp;
-		c.onMouseScroll = &onMouseScroll;
-
-		c.draw = &draw;
-
-		return c;
-	}
+	static inline UIContainerClass initClass();
 };
 
 const UIContainer* UIBox::getRoot() const {
@@ -218,5 +184,5 @@ const UIContainer* UIBox::getRoot() const {
 	return root;
 }
 
-} // namespace UICommon
+UICOMMON_LIBRARY_NAMESPACE_END
 OUTER_NAMESPACE_END
