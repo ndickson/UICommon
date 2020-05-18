@@ -3,7 +3,22 @@
 #include <Box.h>
 
 OUTER_NAMESPACE_BEGIN
-namespace UICommon {
+UICOMMON_LIBRARY_NAMESPACE_BEGIN
+
+UIBox* UIBox::construct() {
+	return new UIBox();
+}
+
+UIBoxClass UIBox::initClass() {
+	UIBoxClass c;
+	c.isContainer = false;
+	c.typeName = "UIBox";
+	c.construct = &construct;
+	// No data to destruct, so destruct doesn't need to be set.
+	return c;
+}
+
+const UIBoxClass UIBox::staticType(UIBox::initClass());
 
 static size_t positionToChildIndex(const Vec2f& position, const Array<std::unique_ptr<UIBox>>& children) {
 	// Check if any child boxes contain the mouse position, in reverse order,
@@ -28,6 +43,28 @@ static size_t positionToChildIndex(const Vec2f& position, const Array<std::uniqu
 	}
 	return UIContainer::INVALID_INDEX;
 }
+
+UIContainerClass UIContainer::initClass() {
+	UIContainerClass c;
+	c.isContainer = true;
+	c.typeName = "UIContainer";
+	c.construct = &construct;
+	c.destruct = &destruct;
+
+	c.isInside = &isInside;
+	c.onMouseEnter = &onMouseEnter;
+	c.onMouseExit = &onMouseExit;
+	c.onMouseMove = &onMouseMove;
+	c.onMouseDown = &onMouseDown;
+	c.onMouseUp = &onMouseUp;
+	c.onMouseScroll = &onMouseScroll;
+
+	c.draw = &draw;
+
+	return c;
+}
+
+const UIContainerClass UIContainer::staticType(UIContainer::initClass());
 
 void UIContainer::updateMouseFocusIndex(UIContainer& container, const MouseState& state) {
 	Array<std::unique_ptr<UIBox>>& children = container.children;
@@ -83,6 +120,15 @@ void UIContainer::updateMouseFocusIndex(UIContainer& container, const MouseState
 	}
 
 	// NOTE: The caller will handle exiting container if !insideContainer.
+}
+
+UIBox* UIContainer::construct() {
+	return new UIContainer();
+}
+void UIContainer::destruct(UIBox* box) {
+	assert(box->type != nullptr);
+	assert(box->type->isContainer);
+	static_cast<UIContainer*>(box)->children.setCapacity(0);
 }
 
 bool UIContainer::isInside(UIBox& box, const Vec2f& position) {
@@ -330,6 +376,7 @@ void UIContainer::draw(const UIBox& box, const Box2f& clipRectangle, const Box2f
 			}
 		}
 
+		// Clip rectangle is empty, so there's nothing to draw.
 		if (empty) {
 			continue;
 		}
@@ -337,7 +384,6 @@ void UIContainer::draw(const UIBox& box, const Box2f& clipRectangle, const Box2f
 		// Compute corresponding child target rectangle based on
 		// childClipRectangle's relation to clipRectangle and targetRectangle.
 		// This takes into account if there's been a simple scale along the way.
-
 		Box2f childTargetRectangle(
 			targetRectangle.min() + (childClipRectangle.min() - clipRectangle.min())*scale,
 			targetRectangle.max() + (childClipRectangle.max() - clipRectangle.max())*scale
@@ -350,5 +396,5 @@ void UIContainer::draw(const UIBox& box, const Box2f& clipRectangle, const Box2f
 	}
 }
 
-} // namespace UICommon
+UICOMMON_LIBRARY_NAMESPACE_END
 OUTER_NAMESPACE_END
