@@ -2,23 +2,12 @@
 
 #include "UIBox.h"
 #include "UICommon.h"
+#include "Canvas.h"
 
 #include <Types.h>
 
 OUTER_NAMESPACE_BEGIN
 UICOMMON_LIBRARY_NAMESPACE_BEGIN
-
-struct Image {
-	Array<Vec4f> pixels;
-	size_t width;
-	size_t height;
-
-	void clear() {
-		pixels.setCapacity(0);
-		width = 0;
-		height = 0;
-	}
-};
 
 struct ImageButton : public UIBox {
 	// This is the image if !isDisabled && !isMouseInside && !isMouseDown.
