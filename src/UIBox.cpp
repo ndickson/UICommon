@@ -1,4 +1,5 @@
 #include "UIBox.h"
+#include "Canvas.h"
 
 #include <Box.h>
 
@@ -335,7 +336,7 @@ void UIContainer::draw(const UIBox& box, const Box2f& clipRectangle, const Box2f
 
 	if (container.backgroundColour[3] != 0) {
 		// Fill the targetRectangle with the background colour.
-		// FIXME: Implement this!!!
+		target.image.applyRectangle(targetRectangle, container.backgroundColour);
 	}
 
 	const Array<std::unique_ptr<UIBox>>& children = container.children;
