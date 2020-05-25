@@ -18,6 +18,8 @@ static SDL_Window* mainWindow;
 static MainWindow* mainWindowContainer;
 static Array<SDL_Window*> otherWindows;
 
+constexpr static Vec4f defaultBackgroundColour(0.5f,0.5f,0.5f,1.0f);
+
 UIBox* MainWindow::construct() {
 	return new MainWindow();
 }
@@ -36,6 +38,7 @@ UIContainerClass MainWindow::initClass() {
 	return c;
 }
 
+const UIContainerClass MainWindow::staticType(MainWindow::initClass());
 
 bool UIInit(
 	int monitorNum,
@@ -161,6 +164,9 @@ bool UIInit(
 	mainWindowContainer = new MainWindow();
 	mainWindowContainer->origin = Vec2f(mainWindowBounds.x, mainWindowBounds.y);
 	mainWindowContainer->size = Vec2f(mainWindowBounds.w, mainWindowBounds.h);
+	mainWindowContainer->backgroundColour = defaultBackgroundColour;
+
+	return true;
 }
 
 static Array<UIExitListener*> exitListeners;
