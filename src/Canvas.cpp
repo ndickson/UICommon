@@ -151,6 +151,11 @@ void Image::applyRectangle(const Box2f& rectangle, const Vec4f& colour) {
 }
 
 void Image::applyImage(const Box2f& destRectangleIn, const Image& srcImage, const Box2f& srcRectangleIn) {
+	// Can't read or write empty images.
+	if (srcImage.size[0] == 0 || srcImage.size[1] == 0 || size[0] == 0 || size[1] == 0) {
+		return;
+	}
+
 	Box2f destRectangle(destRectangleIn);
 	Box2f srcRectangle(srcRectangleIn);
 
@@ -215,6 +220,7 @@ void Image::applyImage(const Box2f& destRectangleIn, const Image& srcImage, cons
 
 	// Loop over the full destination pixels, checking bounds on the source image.
 	for (size_t y = 0; y < midHeight; ++y) {
+		// FIXME: Handle half-pixel shift due to pixel-centred data!!!
 		float srcy = srcScaleFromDest[1]*(y + bottomOpacity) + clippedSrcStart[1];
 		if (srcy < 0) {
 			continue;
@@ -223,10 +229,15 @@ void Image::applyImage(const Box2f& destRectangleIn, const Image& srcImage, cons
 		if (srcyi >= srcImage.size[1]) {
 			break;
 		}
-		// FIXME: Handle 1-pixel height source image!!!
-		assert(srcImage.size[1] >= 2);
+		size_t ySrcIncrement = srcImage.size[0];
 		if (srcyi >= srcImage.size[1]-1) {
-			srcyi = srcImage.size[1]-2;
+			if (srcyi == 0) {
+				// Handle 1-pixel height source image by reading the same pixel twice.
+				ySrcIncrement = 0;
+			}
+			else {
+				srcyi = srcImage.size[1]-2;
+			}
 		}
 		float srcyt = srcy - srcyi;
 		for (size_t x = 0; x < midWidth; ++x) {
@@ -238,10 +249,15 @@ void Image::applyImage(const Box2f& destRectangleIn, const Image& srcImage, cons
 			if (srcxi >= srcImage.size[0]) {
 				break;
 			}
-			// FIXME: Handle 1-pixel width source image!!!
-			assert(srcImage.size[0] >= 2);
+			size_t xSrcIncrement = 1;
 			if (srcxi >= srcImage.size[0]-1) {
-				srcxi = srcImage.size[0]-2;
+				if (srcxi == 0) {
+					// Handle 1-pixel width source image by reading the same pixel twice.
+					xSrcIncrement = 0;
+				}
+				else {
+					srcxi = srcImage.size[0]-2;
+				}
 			}
 			float srcxt = srcx - srcxi;
 
@@ -249,9 +265,9 @@ void Image::applyImage(const Box2f& destRectangleIn, const Image& srcImage, cons
 
 			// Bilinear interpolation
 			size_t i00 = srcyi*srcImage.size[0] + srcxi;
-			size_t i10 = i00 + 1;
-			size_t i01 = i00 + srcImage.size[0];
-			size_t i11 = i01 + 1;
+			size_t i10 = i00 + xSrcIncrement;
+			size_t i01 = i00 + ySrcIncrement;
+			size_t i11 = i01 + xSrcIncrement;
 
 			Vec4f v0 = srcPixels[i00] + srcxt*(srcPixels[i10] - srcPixels[i00]);
 			Vec4f v1 = srcPixels[i01] + srcxt*(srcPixels[i11] - srcPixels[i01]);
