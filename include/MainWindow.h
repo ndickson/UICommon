@@ -35,7 +35,7 @@ private:
 	static inline UIContainerClass initClass();
 };
 
-UICOMMON_LIBRARY_EXPORTED bool UIInit(
+UICOMMON_LIBRARY_EXPORTED MainWindow* UIInit(
 	int monitorNum,
 	bool fullscreen,
 	bool blankOtherMonitors,
@@ -43,6 +43,11 @@ UICOMMON_LIBRARY_EXPORTED bool UIInit(
 	bool exclusiveMouseMode);
 
 UICOMMON_LIBRARY_EXPORTED void UILoop();
+
+// Pass nullptr to clear the keyboard focus.
+UICOMMON_LIBRARY_EXPORTED void setKeyFocus(const UIBox* box);
+
+UICOMMON_LIBRARY_EXPORTED void setNeedRedraw();
 
 class UIExitListener {
 public:
