@@ -44,8 +44,8 @@ void Image::applyRectangle(const Box2f& rectangle, const Vec4f& colour) {
 			(rectangle[1][0] < 0) ? 0.0f : rectangle[1][0]
 		),
 		Vec2f(
-			(rectangle[0][1] >= size[0]) ? size[0] : rectangle[0][1],
-			(rectangle[1][1] >= size[1]) ? size[1] : rectangle[1][1]
+			(rectangle[0][1] >= size_[0]) ? size_[0] : rectangle[0][1],
+			(rectangle[1][1] >= size_[1]) ? size_[1] : rectangle[1][1]
 		)
 	);
 
@@ -57,8 +57,8 @@ void Image::applyRectangle(const Box2f& rectangle, const Vec4f& colour) {
 	};
 	const Box2<size_t> contractedRectangle(minCeil, maxFloor);
 
-	Vec4f* beginPixels = pixels.get();
-	beginPixels += contractedRectangle[1][0]*size[0] + contractedRectangle[0][0];
+	Vec4f* beginPixels = pixels_.get();
+	beginPixels += contractedRectangle[1][0]*size_[0] + contractedRectangle[0][0];
 	const size_t midHeight = contractedRectangle[1][1] - contractedRectangle[1][0];
 	const size_t midWidth = contractedRectangle[0][1] - contractedRectangle[0][0];
 
@@ -75,11 +75,11 @@ void Image::applyRectangle(const Box2f& rectangle, const Vec4f& colour) {
 			// Also strictly inside a single pixel horizontally
 			const float areaOpacity = (clipped[0][1] - clipped[0][0])*verticalOpacity;
 			Vec4f areaColour(colour[0], colour[1], colour[2], colour[3]*areaOpacity);
-			applyColour(*(beginPixels - size[0] - 1), areaColour);
+			applyColour(*(beginPixels - size_[0] - 1), areaColour);
 			return;
 		}
 
-		applySingleLine(colour, verticalOpacity, leftOpacity, rightOpacity, beginPixels - size[0], 1, midWidth);
+		applySingleLine(colour, verticalOpacity, leftOpacity, rightOpacity, beginPixels - size_[0], 1, midWidth);
 
 		return;
 	}
@@ -87,7 +87,7 @@ void Image::applyRectangle(const Box2f& rectangle, const Vec4f& colour) {
 		// Strictly inside a single pixel horizontally
 		const float horizontalOpacity = clipped[0][1] - clipped[0][0];
 
-		applySingleLine(colour, horizontalOpacity, bottomOpacity, topOpacity, beginPixels - 1, size[0], midHeight);
+		applySingleLine(colour, horizontalOpacity, bottomOpacity, topOpacity, beginPixels - 1, size_[0], midHeight);
 
 		return;
 	}
@@ -102,7 +102,7 @@ void Image::applyRectangle(const Box2f& rectangle, const Vec4f& colour) {
 				*pixel = colour;
 				++pixel;
 			}
-			row += size[0];
+			row += size_[0];
 		}
 	}
 	else {
@@ -114,13 +114,13 @@ void Image::applyRectangle(const Box2f& rectangle, const Vec4f& colour) {
 				applyColour(*pixel, colour);
 				++pixel;
 			}
-			row += size[0];
+			row += size_[0];
 		}
 	}
 
 	// Bottom edge
 	if (bottomOpacity != 0) {
-		applySingleLine(colour, bottomOpacity, leftOpacity, rightOpacity, beginPixels - size[0], 1, midWidth);
+		applySingleLine(colour, bottomOpacity, leftOpacity, rightOpacity, beginPixels - size_[0], 1, midWidth);
 	}
 
 	// Left edge
@@ -129,7 +129,7 @@ void Image::applyRectangle(const Box2f& rectangle, const Vec4f& colour) {
 		Vec4f* pixel = beginPixels - 1;
 		for (size_t y = 0; y < midHeight; ++y) {
 			applyColour(*pixel, edgeColour);
-			pixel += size[0];
+			pixel += size_[0];
 		}
 	}
 
@@ -139,20 +139,20 @@ void Image::applyRectangle(const Box2f& rectangle, const Vec4f& colour) {
 		Vec4f* pixel = beginPixels + midWidth + 1;
 		for (size_t y = 0; y < midHeight; ++y) {
 			applyColour(*pixel, edgeColour);
-			pixel += size[0];
+			pixel += size_[0];
 		}
 	}
 
 	// Top edge
 	if (topOpacity != 0) {
-		Vec4f* endRowPixels = beginPixels + midHeight*size[0];
+		Vec4f* endRowPixels = beginPixels + midHeight*size_[0];
 		applySingleLine(colour, topOpacity, leftOpacity, rightOpacity, endRowPixels, 1, midWidth);
 	}
 }
 
 void Image::applyImage(const Box2f& destRectangleIn, const Image& srcImage, const Box2f& srcRectangleIn) {
 	// Can't read or write empty images.
-	if (srcImage.size[0] == 0 || srcImage.size[1] == 0 || size[0] == 0 || size[1] == 0) {
+	if (srcImage.size_[0] == 0 || srcImage.size_[1] == 0 || size_[0] == 0 || size_[1] == 0) {
 		return;
 	}
 
@@ -176,8 +176,8 @@ void Image::applyImage(const Box2f& destRectangleIn, const Image& srcImage, cons
 			(destRectangle[1][0] < 0) ? 0.0f : destRectangle[1][0]
 		),
 		Vec2f(
-			(destRectangle[0][1] >= size[0]) ? size[0] : destRectangle[0][1],
-			(destRectangle[1][1] >= size[1]) ? size[1] : destRectangle[1][1]
+			(destRectangle[0][1] >= size_[0]) ? size_[0] : destRectangle[0][1],
+			(destRectangle[1][1] >= size_[1]) ? size_[1] : destRectangle[1][1]
 		)
 	);
 
@@ -206,8 +206,8 @@ void Image::applyImage(const Box2f& destRectangleIn, const Image& srcImage, cons
 	};
 	const Box2<size_t> contractedRectangle(minCeil, maxFloor);
 
-	Vec4f* beginDestPixels = pixels.get();
-	beginDestPixels += contractedRectangle[1][0]*size[0] + contractedRectangle[0][0];
+	Vec4f* beginDestPixels = pixels_.get();
+	beginDestPixels += contractedRectangle[1][0]*size_[0] + contractedRectangle[0][0];
 	const size_t midHeight = contractedRectangle[1][1] - contractedRectangle[1][0];
 	const size_t midWidth = contractedRectangle[0][1] - contractedRectangle[0][0];
 
@@ -216,7 +216,7 @@ void Image::applyImage(const Box2f& destRectangleIn, const Image& srcImage, cons
 	float leftOpacity   = contractedRectangle[0][0] - clippedDest[0][0];
 	float rightOpacity  = clippedDest[0][1] - contractedRectangle[0][1];
 
-	const Vec4f*const srcPixels = srcImage.pixels.get();
+	const Vec4f*const srcPixels = srcImage.pixels_.get();
 
 	// Loop over the full destination pixels, checking bounds on the source image.
 	for (size_t y = 0; y < midHeight; ++y) {
@@ -226,17 +226,17 @@ void Image::applyImage(const Box2f& destRectangleIn, const Image& srcImage, cons
 			continue;
 		}
 		size_t srcyi = size_t(srcy);
-		if (srcyi >= srcImage.size[1]) {
+		if (srcyi >= srcImage.size_[1]) {
 			break;
 		}
-		size_t ySrcIncrement = srcImage.size[0];
-		if (srcyi >= srcImage.size[1]-1) {
+		size_t ySrcIncrement = srcImage.size_[0];
+		if (srcyi >= srcImage.size_[1]-1) {
 			if (srcyi == 0) {
 				// Handle 1-pixel height source image by reading the same pixel twice.
 				ySrcIncrement = 0;
 			}
 			else {
-				srcyi = srcImage.size[1]-2;
+				srcyi = srcImage.size_[1]-2;
 			}
 		}
 		float srcyt = srcy - srcyi;
@@ -246,25 +246,25 @@ void Image::applyImage(const Box2f& destRectangleIn, const Image& srcImage, cons
 				continue;
 			}
 			size_t srcxi = size_t(srcx);
-			if (srcxi >= srcImage.size[0]) {
+			if (srcxi >= srcImage.size_[0]) {
 				break;
 			}
 			size_t xSrcIncrement = 1;
-			if (srcxi >= srcImage.size[0]-1) {
+			if (srcxi >= srcImage.size_[0]-1) {
 				if (srcxi == 0) {
 					// Handle 1-pixel width source image by reading the same pixel twice.
 					xSrcIncrement = 0;
 				}
 				else {
-					srcxi = srcImage.size[0]-2;
+					srcxi = srcImage.size_[0]-2;
 				}
 			}
 			float srcxt = srcx - srcxi;
 
-			size_t desti = y*size[0] + x;
+			size_t desti = y*size_[0] + x;
 
 			// Bilinear interpolation
-			size_t i00 = srcyi*srcImage.size[0] + srcxi;
+			size_t i00 = srcyi*srcImage.size_[0] + srcxi;
 			size_t i10 = i00 + xSrcIncrement;
 			size_t i01 = i00 + ySrcIncrement;
 			size_t i11 = i01 + xSrcIncrement;
