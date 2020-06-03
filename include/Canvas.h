@@ -13,12 +13,40 @@ OUTER_NAMESPACE_BEGIN
 UICOMMON_LIBRARY_NAMESPACE_BEGIN
 
 class Image {
-	std::unique_ptr<Vec4f[]> pixels;
-	Vec2<size_t> size;
+	std::unique_ptr<Vec4f[]> pixels_;
+	Vec2<size_t> size_;
 public:
-	void clear() {
-		pixels.reset();
-		size = Vec2<size_t>(0,0);
+	INLINE Image() : pixels_(nullptr), size_(0,0) {}
+
+	INLINE const Vec2<size_t>& size() const {
+		return size_;
+	}
+
+	inline void setSize(size_t width, size_t height) {
+		size_t newNumPixels = width*height;
+		size_t oldNumPixels = (pixels_.get() != nullptr) ? (size_[0]*size_[1]) : 0;
+		if (newNumPixels != oldNumPixels) {
+			if (newNumPixels == 0) {
+				pixels_.reset();
+			}
+			else {
+				pixels_.reset(new Vec4f[newNumPixels]);
+			}
+		}
+		size_[0] = width;
+		size_[1] = height;
+	}
+
+	INLINE Vec4f* pixels() {
+		return pixels_.get();
+	}
+	INLINE const Vec4f* pixels() const {
+		return pixels_.get();
+	}
+
+	inline void clear() {
+		pixels_.reset();
+		size_ = Vec2<size_t>(0,0);
 	}
 
 	static inline void applyColour(Vec4f& colourBelow, const Vec4f& colourAbove) {
