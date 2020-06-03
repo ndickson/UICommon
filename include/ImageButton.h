@@ -22,6 +22,10 @@ struct ImageButton : public UIBox {
 	// This is the image if isDisabled.
 	Image disabledImage;
 
+	// This function will be called when the button is activated.
+	// It seems unlikely that most buttons would need more than one listener,
+	// but if that's needed, a callback can have callbackData point to an array
+	// of listeners for it to call.
 	void (*actionCallback)(ImageButton&);
 	void* callbackData;
 
