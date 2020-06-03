@@ -124,9 +124,10 @@ protected:
 	}
 	UIBox() : UIBox(&staticType) {}
 
+	UICOMMON_LIBRARY_EXPORTED static UIBoxClass initClass();
+
 private:
 	UICOMMON_LIBRARY_EXPORTED static UIBox* construct();
-	static inline UIBoxClass initClass();
 };
 
 struct UIContainerClass : public UIBoxClass {
@@ -166,8 +167,7 @@ protected:
 
 	UICOMMON_LIBRARY_EXPORTED static void draw(const UIBox& box, const Box2f& clipRectangle, const Box2f& targetRectangle, Canvas& target);
 
-private:
-	static inline UIContainerClass initClass();
+	UICOMMON_LIBRARY_EXPORTED static UIContainerClass initClass();
 };
 
 const UIContainer* UIBox::getRoot() const {
