@@ -1,8 +1,8 @@
 #pragma once
 
-#include "UIBox.h"
-#include "UICommon.h"
-#include "Canvas.h"
+#include "../UIBox.h"
+#include "../UICommon.h"
+#include "../Canvas.h"
 
 #include <Types.h>
 
